@@ -9,17 +9,19 @@
 #define USAGE_VISUALIZATION_MINUTES MIN_PER_DAY/2
 #define YEARDATE_OFFSET 11
 
-#define ver "1.1.0"
+#define UNIX_PERIOD_DURATION_MS ((float)(60 * 1000) / UPM)
+
+#define ver "1.1.1"
 // ------------------- LOG -------------------
 // [1.1.0]: (add) Keyboard interrupt handler
+// [1.1.1]: (add) Cross-platform delay
 
 
 #include <SFML/Graphics.hpp>
 #include <ctime>
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string>
 #include <csignal>
 //#include "ImageGenerator.h"
@@ -273,14 +275,20 @@ int main()
         // -------- !WALLPAPER -------- //
         
         // -------- DELAY -------- //
-        if (dt < 60 * 1000 / UPM)
-            {
-            #ifdef WINDOWS
+        //
+        #ifdef WINDOWS
+            if (dt < 60 * 1000 / UPM)
                 Sleep (60 * 1000 / UPM - dt);
-            #else
-                usleep ((60 * 1000 / UPM - dt) * 1000);
-            #endif
-            }
+        #else
+            if (dt < UNIX_PERIOD_DURATION_MS * 1000)
+                {
+                std::string sleep_cmd = "sleep ";
+                float sleep_s = (float)(UNIX_PERIOD_DURATION_MS - ((float)dt / 1000)) / (1000);
+    
+                system ((sleep_cmd + std::to_string (sleep_s)).c_str ());
+                }
+        #endif
+      
         // -------- !DELAY -------- //
         }
     
